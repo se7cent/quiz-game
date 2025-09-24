@@ -4,7 +4,6 @@ let timeLeft = 3;
 let currentCorrect;
 
 function generateQuestion() {
-  // Dynamic difficulty
   const difficulty = Math.random();
   let a, b;
   if(difficulty < 0.4){ a = Math.floor(Math.random()*10)+1; b = Math.floor(Math.random()*10)+1; }
@@ -12,7 +11,7 @@ function generateQuestion() {
   else { a = Math.floor(Math.random()*31)+20; b = Math.floor(Math.random()*41)+10; }
 
   currentCorrect = a * b;
-  document.getElementById("question").innerText = `❓ Berapa ${a} × ${b} ?`;
+  document.getElementById("question").innerText = `❓ What is ${a} × ${b} ?`;
 
   let options = new Set([currentCorrect]);
   while(options.size < 4){
@@ -27,7 +26,7 @@ function generateQuestion() {
   document.getElementById("options").innerHTML = html;
   document.getElementById("message").innerText = "";
   document.getElementById("actions").innerHTML = "";
-  document.getElementById("score").innerText = `Skor: ${score}`;
+  document.getElementById("score").innerText = `Score: ${score}`;
 
   startTimer();
 }
@@ -41,7 +40,7 @@ function startTimer(){
     document.getElementById("timer").innerText = `⏱️ ${timeLeft}`;
     if(timeLeft<=0){
       clearInterval(timer);
-      gameOver("⏰ Waktu habis!");
+      gameOver("⏰ Time's up!");
     }
   },1000);
 }
@@ -50,24 +49,23 @@ function checkAnswer(answer){
   clearInterval(timer);
   if(answer===currentCorrect){
     score++;
-    document.getElementById("message").innerText = `✅ Benar! Skor: ${score}`;
+    document.getElementById("message").innerText = `✅ Correct! Score: ${score}`;
     setTimeout(generateQuestion, 500);
   } else {
-    gameOver("❌ Salah!");
+    gameOver("❌ Wrong!");
   }
 }
 
 function gameOver(reason){
-  document.getElementById("message").innerText = `${reason} | Skor Akhir: ${score}`;
+  document.getElementById("message").innerText = `${reason} | Final Score: ${score}`;
   document.getElementById("options").innerHTML = "";
   document.getElementById("timer").innerText = "";
   document.getElementById("actions").innerHTML = `
-    <button onclick="generateQuestion();">▶ Main Lagi (Gratis)</button>
-    <button>⏸ Istirahat 1 menit ($0.01)</button>
-    <button>⏭ Skip soal ($0.02)</button>
-    <button>🔄 Second chance ($0.05)</button>
+    <button onclick="generateQuestion();">▶ Play Again (Free)</button>
+    <button>⏸ Take a 1-min Break ($0.01)</button>
+    <button>⏭ Skip Question ($0.02)</button>
+    <button>🔄 Second Chance ($0.05)</button>
   `;
 }
 
-// mulai game
 generateQuestion();
