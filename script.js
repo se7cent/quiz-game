@@ -1,66 +1,73 @@
-const questions = [
-  {
-    q: "Ibukota Indonesia?",
-    a: ["Jakarta", "Bandung", "Surabaya"],
-    correct: 0
-  },
-  {
-    q: "2 + 2 = ?",
-    a: ["3", "4", "5"],
-    correct: 1
-  },
-  {
-    q: "Planet terdekat dengan matahari?",
-    a: ["Merkurius", "Mars", "Venus"],
-    correct: 0
-  }
-];
-
-let current = 0;
 let score = 0;
+let timer;
+let timeLeft = 3;
+let currentCorrect;
 
-const questionEl = document.getElementById("question");
-const answersEl = document.getElementById("answers");
-const resultEl = document.getElementById("result");
-const restartBtn = document.getElementById("restart");
+function generateQuestion() {
+  // Dynamic difficulty
+  const difficulty = Math.random();
+  let a, b;
+  if(difficulty < 0.4){ a = Math.floor(Math.random()*10)+1; b = Math.floor(Math.random()*10)+1; }
+  else if(difficulty < 0.8){ a = Math.floor(Math.random()*20)+10; b = Math.floor(Math.random()*20)+1; }
+  else { a = Math.floor(Math.random()*31)+20; b = Math.floor(Math.random()*41)+10; }
 
-function loadQuestion() {
-  if (current < questions.length) {
-    const q = questions[current];
-    questionEl.textContent = q.q;
-    answersEl.innerHTML = "";
-    q.a.forEach((ans, idx) => {
-      const btn = document.createElement("button");
-      btn.textContent = ans;
-      btn.onclick = () => checkAnswer(idx);
-      answersEl.appendChild(btn);
-    });
-  } else {
-    showResult();
+  currentCorrect = a * b;
+  document.getElementById("question").innerText = `❓ Berapa ${a} × ${b} ?`;
+
+  let options = new Set([currentCorrect]);
+  while(options.size < 4){
+    options.add(currentCorrect + Math.floor(Math.random()*10)-5);
   }
+  const optionsArray = Array.from(options).sort(()=>Math.random()-0.5);
+
+  let html = "";
+  optionsArray.forEach(opt => {
+    html += `<button onclick="checkAnswer(${opt})">${opt}</button>`;
+  });
+  document.getElementById("options").innerHTML = html;
+  document.getElementById("message").innerText = "";
+  document.getElementById("actions").innerHTML = "";
+  document.getElementById("score").innerText = `Skor: ${score}`;
+
+  startTimer();
 }
 
-function checkAnswer(idx) {
-  if (idx === questions[current].correct) {
+function startTimer(){
+  clearInterval(timer);
+  timeLeft=3;
+  document.getElementById("timer").innerText = `⏱️ ${timeLeft}`;
+  timer = setInterval(()=>{
+    timeLeft--;
+    document.getElementById("timer").innerText = `⏱️ ${timeLeft}`;
+    if(timeLeft<=0){
+      clearInterval(timer);
+      gameOver("⏰ Waktu habis!");
+    }
+  },1000);
+}
+
+function checkAnswer(answer){
+  clearInterval(timer);
+  if(answer===currentCorrect){
     score++;
+    document.getElementById("message").innerText = `✅ Benar! Skor: ${score}`;
+    setTimeout(generateQuestion, 500);
+  } else {
+    gameOver("❌ Salah!");
   }
-  current++;
-  loadQuestion();
 }
 
-function showResult() {
-  questionEl.textContent = "Quiz Selesai!";
-  answersEl.innerHTML = "";
-  resultEl.textContent = `Skor kamu: ${score} / ${questions.length}`;
-  restartBtn.style.display = "inline-block";
+function gameOver(reason){
+  document.getElementById("message").innerText = `${reason} | Skor Akhir: ${score}`;
+  document.getElementById("options").innerHTML = "";
+  document.getElementById("timer").innerText = "";
+  document.getElementById("actions").innerHTML = `
+    <button onclick="generateQuestion();">▶ Main Lagi (Gratis)</button>
+    <button>⏸ Istirahat 1 menit ($0.01)</button>
+    <button>⏭ Skip soal ($0.02)</button>
+    <button>🔄 Second chance ($0.05)</button>
+  `;
 }
 
-restartBtn.onclick = () => {
-  current = 0;
-  score = 0;
-  resultEl.textContent = "";
-  restartBtn.style.display = "none";
-  loadQuestion();
-};
-
-loadQuestion();
+// mulai game
+generateQuestion();
