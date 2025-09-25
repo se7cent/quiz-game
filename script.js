@@ -1,71 +1,83 @@
 let score = 0;
 let timer;
 let timeLeft = 3;
-let currentCorrect;
+
+const questionElement = document.getElementById("question");
+const optionsElement = document.getElementById("options");
+const timerElement = document.getElementById("timer");
+const scoreElement = document.getElementById("score");
+const startBtn = document.getElementById("startBtn");
+
+startBtn.addEventListener("click", startGame);
+
+function startGame() {
+  score = 0;
+  scoreElement.textContent = "Score: " + score;
+  startBtn.style.display = "none";
+  nextQuestion();
+}
+
+function nextQuestion() {
+  clearInterval(timer);
+  timeLeft = 3;
+  timerElement.textContent = "Time: " + timeLeft;
+
+  timer = setInterval(() => {
+    timeLeft--;
+    timerElement.textContent = "Time: " + timeLeft;
+    if (timeLeft <= 0) {
+      gameOver();
+    }
+  }, 1000);
+
+  generateQuestion();
+}
 
 function generateQuestion() {
-  const difficulty = Math.random();
-  let a, b;
-  if(difficulty < 0.4){ a = Math.floor(Math.random()*10)+1; b = Math.floor(Math.random()*10)+1; }
-  else if(difficulty < 0.8){ a = Math.floor(Math.random()*20)+10; b = Math.floor(Math.random()*20)+1; }
-  else { a = Math.floor(Math.random()*31)+20; b = Math.floor(Math.random()*41)+10; }
+  optionsElement.innerHTML = "";
 
-  currentCorrect = a * b;
-  document.getElementById("question").innerText = `❓ What is ${a} × ${b} ?`;
+  let a = Math.floor(Math.random() * 20) + 1;
+  let b = Math.floor(Math.random() * 20) + 1;
+  let operators = ["+", "-", "*"];
+  let operator = operators[Math.floor(Math.random() * operators.length)];
 
-  let options = new Set([currentCorrect]);
-  while(options.size < 4){
-    options.add(currentCorrect + Math.floor(Math.random()*10)-5);
+  let correctAnswer;
+  switch (operator) {
+    case "+": correctAnswer = a + b; break;
+    case "-": correctAnswer = a - b; break;
+    case "*": correctAnswer = a * b; break;
   }
-  const optionsArray = Array.from(options).sort(()=>Math.random()-0.5);
 
-  let html = "";
-  optionsArray.forEach(opt => {
-    html += `<button onclick="checkAnswer(${opt})">${opt}</button>`;
+  questionElement.textContent = `What is ${a} ${operator} ${b}?`;
+
+  let answers = [correctAnswer];
+  while (answers.length < 4) {
+    let wrong = correctAnswer + Math.floor(Math.random() * 10) - 5;
+    if (!answers.includes(wrong)) answers.push(wrong);
+  }
+  answers.sort(() => Math.random() - 0.5);
+
+  answers.forEach(answer => {
+    let btn = document.createElement("button");
+    btn.textContent = answer;
+    btn.onclick = () => {
+      if (answer === correctAnswer) {
+        score++;
+        scoreElement.textContent = "Score: " + score;
+        nextQuestion();
+      } else {
+        gameOver();
+      }
+    };
+    optionsElement.appendChild(btn);
   });
-  document.getElementById("options").innerHTML = html;
-  document.getElementById("message").innerText = "";
-  document.getElementById("actions").innerHTML = "";
-  document.getElementById("score").innerText = `Score: ${score}`;
-
-  startTimer();
 }
 
-function startTimer(){
+function gameOver() {
   clearInterval(timer);
-  timeLeft=3;
-  document.getElementById("timer").innerText = `⏱️ ${timeLeft}`;
-  timer = setInterval(()=>{
-    timeLeft--;
-    document.getElementById("timer").innerText = `⏱️ ${timeLeft}`;
-    if(timeLeft<=0){
-      clearInterval(timer);
-      gameOver("⏰ Time's up!");
-    }
-  },1000);
+  questionElement.textContent = "Game Over! Final Score: " + score;
+  optionsElement.innerHTML = "";
+  timerElement.textContent = "";
+  startBtn.style.display = "block";
+  startBtn.textContent = "Play Again";
 }
-
-function checkAnswer(answer){
-  clearInterval(timer);
-  if(answer===currentCorrect){
-    score++;
-    document.getElementById("message").innerText = `✅ Correct! Score: ${score}`;
-    setTimeout(generateQuestion, 500);
-  } else {
-    gameOver("❌ Wrong!");
-  }
-}
-
-function gameOver(reason){
-  document.getElementById("message").innerText = `${reason} | Final Score: ${score}`;
-  document.getElementById("options").innerHTML = "";
-  document.getElementById("timer").innerText = "";
-  document.getElementById("actions").innerHTML = `
-    <button onclick="generateQuestion();">▶ Play Again (Free)</button>
-    <button>⏸ Take a 1-min Break ($0.01)</button>
-    <button>⏭ Skip Question ($0.02)</button>
-    <button>🔄 Second Chance ($0.05)</button>
-  `;
-}
-
-generateQuestion();
